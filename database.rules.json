@@ -1,0 +1,36 @@
+{
+  "rules": {
+    
+    "QUEUE":{
+      "$uid":{
+        ".write":"auth.uid == $uid",
+        "$other": { ".validate":false }
+      },
+      ".write":true,
+      ".read":false,
+      ".validate":true
+    },
+      
+    "USER_LIST":{
+      "$uid":{
+        "user":{
+          "Nickname":{".validate": "newData.isString() && newData.val() != '' && newData.val().length > 4 && !newData.val().matches(/ /)"},
+          "GameUID":{".validate": "newData.isString()"},
+          "$other":{".validate":false},
+          ".write": "auth.uid == $uid",
+          ".read": "auth.uid == $uid",
+          ".validate": "newData.hasChild('Nickname') && newData.hasChild('GameUID')",
+         },
+        "$other":{".validate":false},
+        ".write": "auth.uid == $uid",
+        ".read": "auth.uid == $uid",
+        ".validate": "newData.hasChild('user')"
+      },
+      ".write":true,
+      ".validate":"newData.exists()"
+    },
+    
+    ".write":false,
+    ".read":false
+  }
+}

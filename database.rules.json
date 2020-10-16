@@ -3,12 +3,15 @@
     
     "QUEUE":{
       "$uid":{
+        "GameMode": { ".validate":true },
+        "UserUID":{".validate":"auth.uid == $uid"},
+        "$other": {".validate":false },
         ".write":"auth.uid == $uid",
-        "$other": { ".validate":false }
+        ".validate":"newData.hasChild('GameMode') && $uid==auth.uid"
       },
       ".write":true,
       ".read":false,
-      ".validate":true
+      ".validate":"newData.hasChild(auth.uid)"
     },
       
     "USER_LIST":{
@@ -16,10 +19,11 @@
         "user":{
           "Nickname":{".validate": "newData.isString() && newData.val() != '' && newData.val().length > 4 && !newData.val().matches(/ /)"},
           "GameUID":{".validate": "newData.isString()"},
+          "UserUID":{".validate":"newData.val() == $uid"},
           "$other":{".validate":false},
           ".write": "auth.uid == $uid",
           ".read": "auth.uid == $uid",
-          ".validate": "newData.hasChild('Nickname') && newData.hasChild('GameUID')",
+          ".validate": "newData.hasChild('Nickname') && newData.hasChild('GameUID') && newData.hasChild('UserUID')",
          },
         "$other":{".validate":false},
         ".write": "auth.uid == $uid",

@@ -1,13 +1,6 @@
-import  * as functions from 'firebase-functions';
+import * as QueueManager from './service/QueueManager';
+import * as firebase from 'firebase-admin';
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-export const helloWorld = functions.https.onRequest((request, response) => {
-   functions.logger.info("Hello logs!", {structuredData: true});
-   response.send("Hello from Firebase!");
-});
+export const QueueListener = QueueManager.QueueListener;
 
-export const  test = functions.https.onRequest((request, response) => {
-    response.send("Is it that easy?");
-})
+firebase.initializeApp();

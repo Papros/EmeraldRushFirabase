@@ -38,9 +38,9 @@ export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate
            
             if(!flag){
                 const p: PlayerInQueue = player.val();
-                if(p.GameMode === mode){
+                if(p.GameMode === mode && p.UserUID != "Admin"){
                     gameList.push(p);
-                    if(gameList.length === limit){
+                    if(gameList.length === limit && !flag){
                         GameMaker.MakeGame(mode,gameList);
                         flag = true;
                     }

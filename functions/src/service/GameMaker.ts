@@ -1,28 +1,55 @@
 import * as firebase from 'firebase-admin';
-
+import * as uuid from 'uuid';
 import { Game } from '../model/database/Game';
 import { PlayerInQueue } from '../model/database/PlayerInQueue';
 
-export const MakeGame = (mode:string, players:PlayerInQueue[]) => {
+export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
 
-    
-    firebase.database().ref().transaction( () => {
+    console.log("Making game...");
+    return new Promise((resolve,reject) => {
+        firebase.database().ref("QUEUE").transaction( (queue) => {
+            
+            if(queue == null){
+                console.log("null for that moment...");
+                return null;
+            } 
+            else{
 
-        //Make game
-        console.log("Making game: 123");
-        const game:Game = new Game("123",players);
-        firebase.database().ref('GAME_LIST').child("123").update(game);
+                for(let iter=0; iter<playersList.length; iter++){
+                    if(queue[playersList[iter].UserUID] != null && queue[playersList[iter].UserUID] != {}){
+                        queue[playersList[iter].UserUID] = {};
+                        console.log("Player removed or empty object");
+                    }else{
+                        console.log("No players available anymore, abort transaction");
+                        
+                        return;
+                    }
+                }
+
+                return queue;
+            }
+
+        }, 
+        (error) => {
+            if(error){
+                reject();
+            }
+        }).then( (resoult) => {
+            if(resoult.committed){
+                console.log("making game");
+                const game:Game = new Game(uuid.v4(),playersList);
+                firebase.database().ref('GAME_LIST').child(game.GameUID).update(game);
         
-        //Delete players from queue
-        //Add game uid to players
-
-        players.forEach( player => {
-            firebase.database().ref("QUEUE").child(player.UserUID).remove();
-            firebase.database().ref("USER_LIST").child(player.UserUID).child('user').child("GameUID").set("123");
-        });
-
-        return;
+                playersList.forEach( player => {
+                    firebase.database().ref("USER_LIST").child(player.UserUID).child('user').child("GameUID").set(game.GameUID);
+                });
+                resolve();
+            }else{
+                reject();
+            }
+        })
     });
 
+};
 
-}
+

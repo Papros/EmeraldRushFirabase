@@ -2,9 +2,9 @@ import * as functions from 'firebase-functions';
 import { PlayerInQueue } from '../model/database/PlayerInQueue';
 import * as GameMaker from './GameMaker';
 
-export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate((snaphsot,context) => {
+export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate((snapshot,context) => {
 
-    const userData = snaphsot.val();
+    const userData = snapshot.val();
  
     const game_mode = userData.GameMode;
 
@@ -12,12 +12,11 @@ export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate
     functions.logger.log("Test logowania 16:10 :  ")
     functions.logger.log(" New user added to Queue: "+context.params.userUID+" to mode: "+game_mode);
 
-    SearchInQueue(game_mode, snaphsot);
+    SearchInQueue(game_mode, snapshot);
 
  });
 
  const SearchInQueue = (mode:string, snapshot : functions.database.DataSnapshot):void => {
-
 
     snapshot.ref.root.child('QUEUE').on("value", snapshot => {
 
@@ -51,5 +50,4 @@ export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate
 
     });
     
-
  };

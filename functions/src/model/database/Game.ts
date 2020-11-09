@@ -1,4 +1,4 @@
-import { Mine } from "../game/Mine";
+import { Mine, MINE_STATE } from "../game/Mine";
 import { PlayerInQueue } from "./PlayerInQueue";
 import { PlayerPrivate } from "./PlayerPrivate";
 import { PlayerPublic } from "./PlayerPublic";
@@ -12,9 +12,11 @@ export class Game {
     GameUID: string;
     Players_Public: PlayerPublic[]; // Public data of player
     Players_Private: PlayerPrivate[]; // Private data of player
-    MineNumber: Number;
+    MineNumber: number;
     Mines: Mine[];
-    GameState: GAME_STATE;
+    GameState: number;
+    CurrentMineID: number;
+    RemovedCards: number[];
 
     constructor (uid:string, players: PlayerInQueue[]){
         this.GameUID = uid; 
@@ -23,10 +25,14 @@ export class Game {
         this.GameState = GAME_STATE.STARTING;
         this.MineNumber = 3;
         this.Mines = [];
+        this.CurrentMineID = 0;
+        this.RemovedCards = [];
 
         for(let n = 0; n < this.MineNumber; n++){
             this.Mines.push(new Mine());
         }
+
+        this.Mines[0].MineState = MINE_STATE.CURRENT;
 
         players.forEach( (player,index) => {
             this.Players_Public.push( new PlayerPublic(index,player.UserUID));

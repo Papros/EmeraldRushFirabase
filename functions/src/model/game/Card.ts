@@ -1,5 +1,5 @@
 
-enum CARD_TYPE {
+export enum CARD_TYPE {
     DIAMONDS, ARTIFACT, LAVA, TRAP, SPIDERS, SNAKES, ROCKS, DRAGON
 }
 
@@ -7,11 +7,13 @@ enum CARD_TYPE {
 export class Card{
 
     Emeralds: number;
-    CardType: CARD_TYPE;
+    CardType: number;
+    CardID: number;
 
-    constructor(cardType: CARD_TYPE, emeralds: number = 0){
+    constructor(cardId:number, cardType: CARD_TYPE, emeralds: number = 0){
         this.Emeralds = emeralds;
         this.CardType = cardType;
+        this.CardID = cardId;
     }
 
     IsTrap = ():boolean => {

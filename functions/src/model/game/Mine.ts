@@ -1,19 +1,21 @@
-import { Card } from "./Card";
 
-enum MINE_STATE{
+export enum MINE_STATE{
     VISITED, NOT_VISITED, CURRENT
 }
 
 export class Mine {
 
-    Node: Card[];
-    MineState: MINE_STATE;
+    Node: number[];
+    MineState: number;
+    EmeraldsForTake: number;
 
     constructor(){
         this.MineState = MINE_STATE.NOT_VISITED;
         this.Node = [];
+        this.EmeraldsForTake = 0;
     }
 
+    /*
     Visit = () => {
         this.MineState = MINE_STATE.CURRENT;
     }
@@ -24,6 +26,6 @@ export class Mine {
 
     RevealNextNode = () => {
         this.Node.push()
-    }
+    }*/
     
 }

@@ -1,5 +1,5 @@
-import * as QueueManager from './service/QueueManager';
-import * as GameStateManager from './service/gameService/GameStateListener'
+import * as QueueManager from './databaseListeners/QueueListener';
+import * as GameStateManager from './databaseListeners/GameStateListener'
 import * as firebase from 'firebase-admin';
 
 export const QueueListener = QueueManager.QueueListener;

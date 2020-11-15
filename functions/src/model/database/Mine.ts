@@ -8,24 +8,13 @@ export class Mine {
     Node: number[];
     MineState: number;
     EmeraldsForTake: number;
+    LastMoveTimestamp: number;
 
     constructor(){
         this.MineState = MINE_STATE.NOT_VISITED;
         this.Node = [];
+        this.LastMoveTimestamp = -1;
         this.EmeraldsForTake = 0;
     }
-
-    /*
-    Visit = () => {
-        this.MineState = MINE_STATE.CURRENT;
-    }
-
-    Leave = () => {
-        this.MineState = MINE_STATE.VISITED;
-    }
-
-    RevealNextNode = () => {
-        this.Node.push()
-    }*/
     
 }

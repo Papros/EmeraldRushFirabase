@@ -5,20 +5,20 @@ export enum PLAYER_DECISION {
 
 export class PlayerPrivate {
 
-    id: number;
-    uid: string;
-    chest: number;
-    pocket: number;
-    decision: PLAYER_DECISION;
-    exploring: boolean;
+    Id: number;
+    Uid: string;
+    Chest: number;
+    Pocket: number;
+    Decision: number;
+    IsExploring: boolean;
 
     constructor (id:number, uid:string){
-        this.id = id;
-        this.uid = uid;
-        this.chest = 0;
-        this.pocket = 0;
-        this.exploring = true;
-        this.decision = PLAYER_DECISION.GO;
+        this.Id = id;
+        this.Uid = uid;
+        this.Chest = 0;
+        this.Pocket = 0;
+        this.IsExploring = true;
+        this.Decision = PLAYER_DECISION.GO;
     }
 
 }

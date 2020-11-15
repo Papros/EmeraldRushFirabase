@@ -3,7 +3,6 @@ export enum CARD_TYPE {
     DIAMONDS, ARTIFACT, LAVA, TRAP, SPIDERS, SNAKES, ROCKS, DRAGON
 }
 
-
 export class Card{
 
     Emeralds: number;
@@ -24,3 +23,4 @@ export class Card{
 
     IsDragon = ():boolean => (this.CardType == CARD_TYPE.DRAGON);
 }
+

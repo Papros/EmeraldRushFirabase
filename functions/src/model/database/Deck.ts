@@ -2,7 +2,7 @@ import { Card, CARD_TYPE } from "./Card";
 
 
 export class Deck {
-
+    
     Cards: Card[];
 
     constructor(){
@@ -49,6 +49,22 @@ export class Deck {
         this.Cards.push(new Card(33,CARD_TYPE.DIAMONDS,15));
         this.Cards.push(new Card(34,CARD_TYPE.DIAMONDS,17));
         
+    }
+
+    IsTrap = (CardId: number):boolean => {
+        return this.Cards[CardId].IsTrap();
+    }
+
+    IsDragon = (CardId: number):boolean => {
+        return this.Cards[CardId].IsDragon();
+    }
+
+    GetEmeraldValue = (CardID: number):number => {
+        return this.Cards[CardID].Emeralds;
+    }
+
+    GetCardType = (CardID: number): number => {
+       return this.Cards[CardID].CardType;
     }
 
 }

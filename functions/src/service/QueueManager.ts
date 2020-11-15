@@ -1,27 +1,12 @@
 import * as functions from 'firebase-functions';
 import { PlayerInQueue } from '../model/database/PlayerInQueue';
-import * as GameMaker from './GameMaker';
+import * as GameMaker from '../service/GameMaker';
 
-export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate((snapshot,context) => {
-
-    const userData = snapshot.val();
- 
-    const game_mode = userData.GameMode;
-
-
-    functions.logger.log("Test logowania 16:10 :  ")
-    functions.logger.log(" New user added to Queue: "+context.params.userUID+" to mode: "+game_mode);
-
-    SearchInQueue(game_mode, snapshot);
-
- });
-
- const SearchInQueue = (mode:string, snapshot : functions.database.DataSnapshot):void => {
+export const SearchInQueue = (mode:string, snapshot : functions.database.DataSnapshot):void => {
 
     snapshot.ref.root.child('QUEUE').on("value", snapshot => {
 
         let gameList:PlayerInQueue[] = [];
-
         let limit:number = 0;
         
         switch(mode){
@@ -31,17 +16,17 @@ export const QueueListener = functions.database.ref("/QUEUE/{userUID}").onCreate
             default: limit = 0; 
         }
 
-        let flag:boolean = false;
+        let enoughPlayer:boolean = false;
 
         snapshot.forEach( player => {
            
-            if(!flag){
+            if(!enoughPlayer){
                 const p: PlayerInQueue = player.val();
                 if(p.GameMode === mode && p.UserUID != "Admin"){
                     gameList.push(p);
-                    if(gameList.length === limit && !flag){
+                    if(gameList.length === limit && !enoughPlayer){
                         GameMaker.MakeGame(mode,gameList);
-                        flag = true;
+                        enoughPlayer = true;
                     }
                 }
             }

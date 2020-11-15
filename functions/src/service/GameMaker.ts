@@ -6,11 +6,11 @@ import { PlayerInQueue } from '../model/database/PlayerInQueue';
 export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
 
     console.log("Making game...");
+    
     return new Promise((resolve,reject) => {
         firebase.database().ref("QUEUE").transaction( (queue) => {
             
             if(queue == null){
-                console.log("null for that moment...");
                 return null;
             } 
             else{
@@ -21,7 +21,6 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
                         console.log("Player removed or empty object");
                     }else{
                         console.log("No players available anymore, abort transaction");
-                        
                         return;
                     }
                 }
@@ -36,10 +35,11 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
             }
         }).then( (resoult) => {
             if(resoult.committed){
-                console.log("making game");
                 const game:Game = new Game(uuid.v4(),playersList);
                 firebase.database().ref('GAME_LIST').child(game.GameUID).update(game);
         
+                console.log("Add new game: "+game.GameUID);
+
                 playersList.forEach( player => {
                     firebase.database().ref("USER_LIST").child(player.UserUID).child('user').child("GameUID").set(game.GameUID);
                 });
@@ -51,5 +51,9 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
     });
 
 };
+
+export const DeleteGame = (GameUID:string) => {
+    firebase.database().ref("GAME_LIST").child(GameUID).set(null);
+}
 
 

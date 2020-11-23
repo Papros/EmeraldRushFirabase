@@ -36,7 +36,7 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
         }).then( (resoult) => {
             if(resoult.committed){
                 const game:Game = new Game(uuid.v4(),playersList);
-                firebase.database().ref('GAME_LIST').child(game.GameUID).update(game);
+                firebase.database().ref('GAME_LIST').child(game.GameUID).child('game').update(game);
         
                 console.log("Add new game: "+game.GameUID);
 

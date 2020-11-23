@@ -9,7 +9,8 @@ export class PlayerPublic {
     uid: string;
     name: string;
     emotion: number;
-    publicChest: number;
+    chest: number;
+    pocket: number;
     status: number;
 
     constructor (id:number, name:string, uid: string){
@@ -17,7 +18,8 @@ export class PlayerPublic {
         this.name = name;
         this.uid = uid;
         this.emotion = 0;
-        this.publicChest = 0;
+        this.pocket = 0;
+        this.chest = 0;
         this.status = PlayerStatus.EXPLORING;
     }
 

@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 
-export const PlayerDecisionListener = functions.database.ref("/GAME_LIST/{gameUID}/PlayersPrivate/{playerId}/Decision").onUpdate((snapshot,context) => {
+export const PlayerDecisionListener = functions.database.ref("/GAME_LIST/{gameUID}/game/PlayersPrivate/{playerId}/Decision").onUpdate((snapshot,context) => {
 
     const userDeciosion = snapshot.after;
     let gameUID = context.params.gameUID

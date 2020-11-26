@@ -4,48 +4,71 @@ import { PlayerPrivate } from "./PlayerPrivate";
 import { PlayerPublic } from "./PlayerPublic";
 
 export enum GAME_STATE {
-    WAITING_FOR_MOVE, WAITING_FOR_CARD, FINISHED
+    WAITING_FOR_MOVE, WAITING_FOR_CARD, FINISHED, WAITING_FOR_FIRST
 }
 
 export class Game {
 
-    GameUID: string;
-    PlayersPublic: PlayerPublic[]; // Public data of player
-    PlayersPrivate: PlayerPrivate[]; // Private data of player
-    PlayersActive: String[];
-    MineNumber: number;
-    Mines: Mine[];
-    GameState: number;
-    CurrentMineID: number;
-    RemovedCards: number[];
-    GameStartTimestamp: number;
+    Public:{
+        data:{
+            GameUID: string;
+            DecisionTime: number;
+            PlayersPublic: PlayerPublic[];
+            MineNumber: number;
+            Mines: Mine[];
+            CurrentMineID: number;
+            GameStartTimestamp: number;
+        }
+    };
+
+    Private:{
+        PlayersPrivate: PlayerPrivate[]
+    };
+
+    Secret:{
+        PlayersActive: String[];
+        GameState: number;
+        RemovedCards: number[];
+    }
 
     constructor (uid:string, players: PlayerInQueue[]){
-        this.GameUID = uid; 
-        this.PlayersPublic = [];
-        this.PlayersPrivate = [];
-        this.GameState = GAME_STATE.WAITING_FOR_MOVE;
-        this.MineNumber = 3;
-        this.Mines = [];
-        this.CurrentMineID = 0;
-        this.PlayersActive = [];
-        this.RemovedCards = [];
-        this.GameStartTimestamp = Date.now();
 
-        for(let n = 0; n < this.MineNumber; n++){
-            this.Mines.push(new Mine());
+        this.Public = {
+            data:{
+                GameUID: uid,
+                PlayersPublic: [],
+                MineNumber: 3,
+                DecisionTime: 30,
+                Mines: [],
+                CurrentMineID: 0,
+                GameStartTimestamp: Date.now()
+            }
+        };
+        
+        this.Private = {
+            PlayersPrivate: []
+        };
+
+        this.Secret = {
+            PlayersActive: [],
+            GameState: GAME_STATE.WAITING_FOR_FIRST,
+            RemovedCards: [],
         }
 
-        this.Mines[0].MineState = MINE_STATE.CURRENT;
+        for(let n = 0; n < this.Public.data.MineNumber; n++){
+            this.Public.data.Mines.push(new Mine());
+        }
+
+        this.Public.data.Mines[0].MineState = MINE_STATE.CURRENT;
 
         players.forEach( (player,index) => {
-            this.PlayersActive.push( player.UserUID );
-            this.PlayersPublic.push( new PlayerPublic(index,"Player_"+index,player.UserUID));
-            this.PlayersPrivate.push( new PlayerPrivate(index, player.UserUID));
+            this.Secret.PlayersActive.push( player.UserUID );
+            this.Public.data.PlayersPublic.push( new PlayerPublic(index,"Player_"+index,player.UserUID));
+            this.Private.PlayersPrivate.push( new PlayerPrivate(index, player.UserUID));
             console.log("add new player");
         });
 
-        console.log("players list lenght: "+this.PlayersPrivate.length);
+        console.log("players list lenght: "+this.Private.PlayersPrivate.length);
         
     }
 

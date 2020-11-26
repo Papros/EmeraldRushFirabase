@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as Game from '../model/database/Game';
 import * as RoundManager from '../service/RoundManager';
 
-export const GameStateListener = functions.database.ref("/GAME_LIST/{gameUID}/game/GameState").onUpdate( (snapshot,context) => {
+export const GameStateListener = functions.database.ref("/GAME_LIST/{gameUID}/game/Secret/GameState").onUpdate( (snapshot,context) => {
 
     const currentState = snapshot.after.val();
 

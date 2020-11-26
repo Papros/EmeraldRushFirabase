@@ -1,6 +1,32 @@
 {
   "rules": {
-    
+    "GAME_LIST":{
+      "$gameUid":{
+          "game":{
+            "Public":{
+              ".write":false,
+              ".read":"root.child('USER_LIST').child(auth.uid).child('user').child('GameUID').val() == $gameUid"
+            },
+            "Private":{
+              "$nr":{
+                "Decision":{
+                  ".validate":"newData.isNumber()",
+                  ".read":false,
+                  ".write":"data.parent().child('Uid').val() == auth.uid"
+                }
+              }
+            },
+            "Secret":{
+              ".write":false,
+              ".read":false
+            },
+            ".write":false,
+            ".read":false
+        },
+        ".write":false,
+        ".read":false
+      }
+    },
     "QUEUE":{
       "$uid":{
         "GameMode": { ".validate":true },
@@ -23,7 +49,7 @@
           "$other":{".validate":false},
           ".write": "auth.uid == $uid",
           ".read": "auth.uid == $uid",
-          ".validate": "newData.hasChild('Nickname') && newData.hasChild('GameUID') && newData.hasChild('UserUID')",
+          ".validate": "newData.hasChild('Nickname') && newData.hasChild('GameUID') && newData.hasChild('UserUID')"
          },
         "$other":{".validate":false},
         ".write": "auth.uid == $uid",

@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { PlayerInQueue } from '../model/database/PlayerInQueue';
 import * as GameMaker from '../service/GameMaker';
+import * as DeckManager from './roundService/DeckManager';
 
 export const SearchInQueue = (mode:string, snapshot : functions.database.DataSnapshot):void => {
 
@@ -25,7 +26,10 @@ export const SearchInQueue = (mode:string, snapshot : functions.database.DataSna
                 if(p.GameMode === mode && p.UserUID != "Admin"){
                     gameList.push(p);
                     if(gameList.length === limit && !enoughPlayer){
-                        GameMaker.MakeGame(mode,gameList);
+                        GameMaker.MakeGame(mode,gameList)
+                        .then((resoultGameUID) => {
+                            if(resoultGameUID != "") DeckManager.ManageNextRound(resoultGameUID);
+                        });
                         enoughPlayer = true;
                     }
                 }

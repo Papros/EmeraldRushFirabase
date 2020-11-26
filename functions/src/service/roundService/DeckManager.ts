@@ -10,10 +10,7 @@ import * as EmeraldsDistibutor from './EmeraldsDistributor';
 
 export const ManageNextRound = (GameUID:String) => {
 
-    let deck = new Deck();
-    let cards = deck.Cards;
-
-    return new Promise( (resolve,reject) => {
+    return new Promise<GAME_STATE>( (resolve,reject) => {
 
         firebase.database().ref(`GAME_LIST/${GameUID}/game`).transaction( (GameInstance:Game) => {
 
@@ -22,157 +19,15 @@ export const ManageNextRound = (GameUID:String) => {
             } 
             else{
 
-                let newDecision:string[] = [];
+                let resoultGame = SelectNextCard(GameInstance);
 
-                // Get Id of player who are going further
-                GameInstance.PlayersPrivate.forEach( player => {
-                    if(player.Decision == PLAYER_DECISION.GO && GameInstance.PlayersActive.includes(player.Uid) ){
-                        newDecision.push(player.Uid);
-                    }
-                });
-
-                // When no player decide to GO further , split non-split emeralds from prevoius round
-                if(newDecision.length == 0){
-
-                    let divideResoult = EmeraldsDistibutor.DivideAmongTheWinner(0, GameInstance.PlayersActive.length, GameInstance.Mines[GameInstance.CurrentMineID].EmeraldsForTake);
-
-                    GameInstance.PlayersPublic.forEach( player => {
-
-                        if( GameInstance.PlayersActive.includes(player.uid) ){
-                            player.chest += player.pocket + divideResoult.byPlayer;
-                            player.pocket = 0;
-                        }
-
-                    });
-
-                    // Move emerald from pocket to the chest
-                    GameInstance.PlayersPublic.forEach( player => {
-                        newDecision.push(player.uid);
-                    });
-
-                    // Set pointer on next mine
-                    GameInstance.Mines[GameInstance.CurrentMineID].MineState = MINE_STATE.VISITED;
-                    GameInstance.CurrentMineID++;
-
-                    // Check if next mine exist
-                    if(GameInstance.MineNumber > GameInstance.CurrentMineID){
-                        GameInstance.Mines[GameInstance.CurrentMineID].MineState = MINE_STATE.CURRENT;
-                        GameInstance.GameState = GAME_STATE.WAITING_FOR_MOVE;
-                    }else{
-                        GameInstance.GameState = GAME_STATE.FINISHED;
-                    }
-
-                    GameInstance.PlayersActive = newDecision;
-                    return GameInstance;
-                }else{ 
-
-                    let returningPlayerNumber = GameInstance.PlayersPrivate.filter( player => {
-                        return GameInstance.PlayersActive.includes(player.Uid) && !newDecision.includes(player.Uid);
-                    }).length;
-
-                    // Moving emerlds from pocket to the chest, setting flag to false
-                    GameInstance.PlayersPublic.forEach( player => {
-                        if(!newDecision.includes(player.uid)){
-                            player.chest += player.pocket;
-                            player.pocket = 0;
-                            player.status = PlayerStatus.RESTING;
-                            if(returningPlayerNumber == 1){
-                                player.chest += GameInstance.Mines[GameInstance.CurrentMineID].EmeraldsForTake;
-                                GameInstance.Mines[GameInstance.CurrentMineID].EmeraldsForTake = 0;
-                            }
-                        }
-                    });
-
-                    // Setting public flag for this player
-                    GameInstance.PlayersPrivate.forEach( player => {
-                        if(!newDecision.includes(player.Uid)){
-                            player.IsExploring = false;
-                        }
-                    });
-
-                }
-            
-                //In case some brave adventurer will be found
-                // Reset values (need for first round)
-                if(GameInstance.RemovedCards == null){
-                    GameInstance.RemovedCards = [];
+                if(resoultGame.Secret.GameState == GAME_STATE.WAITING_FOR_FIRST){
+                    resoultGame = SelectNextCard(resoultGame);
                 }
 
-                if(GameInstance.Mines[GameInstance.CurrentMineID].Node == null){
-                    GameInstance.Mines[GameInstance.CurrentMineID].Node = [];
-                }
-
-                //Filter cards
-                cards = cards.filter((card:Card) => ( !GameInstance.RemovedCards.includes(card.CardID) &&  !GameInstance.Mines[GameInstance.CurrentMineID].Node.includes(card.CardID)) );
-                cards = ShuffleDeck(cards);
-                console.log("card filtered and shufled, first: "+cards[0].CardID);
-
-                // Add selected cards (first one after shuffle)
-                GameInstance.Mines[GameInstance.CurrentMineID].Node.push(cards[0].CardID);
-
-                //Chack what card was selected
-                if(deck.IsTrap(cards[0].CardID)){
-
-                    let endOfTurnResoult = CheckIfRoundIsFinnished(deck,GameInstance.Mines[GameInstance.CurrentMineID].Node);
-
-                    //If it`s 3rd trap or dragon
-                    if(endOfTurnResoult.resoult || deck.IsDragon(cards[0].CardID)){
-
-                        GameInstance.Mines[GameInstance.CurrentMineID].MineState = MINE_STATE.VISITED;
-                        GameInstance.CurrentMineID++;
-
-                        if(GameInstance.MineNumber > GameInstance.CurrentMineID){ // Check if there is more not-visited mines
-
-                            GameInstance.Mines[GameInstance.CurrentMineID].MineState = MINE_STATE.CURRENT; 
-
-                            if(endOfTurnResoult.resoult){
-                                GameInstance.RemovedCards = GameInstance.RemovedCards.concat(endOfTurnResoult.cardsToRemove); // Add 3 trap ID's
-                            }else{
-                                GameInstance.RemovedCards.push(cards[0].CardID); // Add dragon's card id
-                            }
-
-                            
-                            // Set "dead" status, only use in resoult display
-                            GameInstance.PlayersPrivate.forEach( player => {
-                                    player.IsExploring = true;
-                            });
-
-                            // Reset players pocket, and bring public flag
-                            GameInstance.PlayersPublic.forEach( player => {
-                                if(newDecision.includes(player.uid)){
-                                    player.status = PlayerStatus.DEAD;
-                                    player.pocket = 0;
-                                }
-                            });
-
-                        }else{
-                            GameInstance.GameState = GAME_STATE.FINISHED;
-                        }
-
-                    }else{ 
-                        GameInstance.GameState = GAME_STATE.WAITING_FOR_MOVE;
-                    }
-
-                }else{ // If it's no trap or dragon, split emeralds 
-
-                    let splitResoult = EmeraldsDistibutor.DivideAmongThePlayer(cards[0].Emeralds,GameInstance.PlayersActive.length,GameInstance.Mines[GameInstance.CurrentMineID].EmeraldsForTake);
-                    GameInstance.PlayersPublic.forEach( player => {
-
-                        if( newDecision.includes(player.uid) ){
-                            player.pocket += splitResoult.byPlayer;
-                        }
-
-                    });
-
-                    GameInstance.Mines[GameInstance.CurrentMineID].EmeraldsForTake += splitResoult.forFuture;
-                   
-                }
-
-                GameInstance.PlayersActive = newDecision;
-                GameInstance.GameState = GAME_STATE.WAITING_FOR_MOVE;
-
-                return GameInstance;
+                return resoultGame;
             }
+
         }, (error) => {
             if(error){
                 reject();
@@ -187,6 +42,175 @@ export const ManageNextRound = (GameUID:String) => {
 
         
     });
+
+}
+
+const SelectNextCard = (GameInstance:Game):Game =>{
+
+    let deck = new Deck();
+    let cards = deck.Cards;
+
+    let newDecision:string[] = [];
+
+    // Get Id of player who are going further
+    GameInstance.Private.PlayersPrivate.forEach( player => {
+        if( (player.Decision == PLAYER_DECISION.GO && GameInstance.Secret.PlayersActive.includes(player.Uid)) || GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_FIRST){
+            newDecision.push(player.Uid);
+        }
+    });
+
+    // When no player decide to GO further , split non-split emeralds from prevoius round
+    if(newDecision.length == 0){
+
+        let divideResoult = EmeraldsDistibutor.DivideAmongTheWinner(0, GameInstance.Secret.PlayersActive.length, GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake);
+
+        GameInstance.Public.data.PlayersPublic.forEach( player => {
+            if( GameInstance.Secret.PlayersActive.includes(player.uid) ){
+                player.chest += player.pocket + divideResoult.byPlayer;
+                player.pocket = 0;
+            }
+        });
+
+        // Move emerald from pocket to the chest
+        GameInstance.Public.data.PlayersPublic.forEach( player => {
+            newDecision.push(player.uid);
+        });
+
+        // Set pointer on next mine
+        GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
+        GameInstance.Public.data.CurrentMineID++;
+
+        // Check if next mine exist
+        if(GameInstance.Public.data.MineNumber > GameInstance.Public.data.CurrentMineID){
+            GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.CURRENT;
+            GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_FIRST;
+        }else{
+            GameInstance.Secret.GameState = GAME_STATE.FINISHED;
+        }
+
+        GameInstance.Private.PlayersPrivate.forEach( player => {
+            player.Decision = PLAYER_DECISION.GO;
+            player.IsExploring = true;
+        })
+
+        GameInstance.Secret.PlayersActive = newDecision;
+        return GameInstance;
+
+    }else{ 
+
+        //Filter which player are not going further
+        let returningPlayerNumber = GameInstance.Private.PlayersPrivate.filter( player => {
+            return GameInstance.Secret.PlayersActive.includes(player.Uid) && !newDecision.includes(player.Uid);
+        }).length;
+
+        // Moving emerlds from pocket to the chest, setting flag to false
+        GameInstance.Public.data.PlayersPublic.forEach( player => {
+            if(!newDecision.includes(player.uid)){
+                player.chest += player.pocket;
+                player.pocket = 0;
+                player.status = PlayerStatus.RESTING;
+                if(returningPlayerNumber == 1){
+                    player.chest += GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake;
+                    GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake = 0;
+                }
+            }
+        });
+
+        // Setting public flag  IsExploring on false for this player
+        GameInstance.Private.PlayersPrivate.forEach( player => {
+            if(!newDecision.includes(player.Uid)){
+                player.IsExploring = false;
+            }
+        });
+
+    }
+
+    //In case some brave adventurer will be found, reset values (need for first round)
+    if(GameInstance.Secret.RemovedCards == null){
+        GameInstance.Secret.RemovedCards = [];
+    }
+
+    if(GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node == null){
+        GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node = [];
+    }
+
+    //Filter cards
+    cards = cards.filter((card:Card) => ( !GameInstance.Secret.RemovedCards.includes(card.CardID) &&  !GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node.includes(card.CardID)) );
+    cards = ShuffleDeck(cards);
+    let selectedCard:Card = cards[0];
+    console.log("card filtered and shufled, first: "+selectedCard.CardID);
+
+    if(GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node.length == 0 && deck.IsDragon(selectedCard.CardID)){
+        selectedCard = cards[1];
+    }
+    
+    // Add selected cards (first one after shuffle)
+    GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node.push(selectedCard.CardID);
+
+    //Chack what card was selected
+    if(deck.IsTrap(selectedCard.CardID)){
+
+        // Check if orund was finished
+        let endOfTurnResoult = CheckIfRoundIsFinnished(deck,GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].Node);
+
+        //If it`s 3rd trap or dragon
+        if(endOfTurnResoult.resoult || deck.IsDragon(selectedCard.CardID)){
+
+            GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
+            GameInstance.Public.data.CurrentMineID++;
+
+            if(GameInstance.Public.data.MineNumber > GameInstance.Public.data.CurrentMineID){ // Check if there is more not-visited mines
+
+                GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.CURRENT; 
+
+                if(endOfTurnResoult.resoult){
+                    GameInstance.Secret.RemovedCards = GameInstance.Secret.RemovedCards.concat(endOfTurnResoult.cardsToRemove); // Add 3 trap ID's
+                }else{
+                    GameInstance.Secret.RemovedCards.push(selectedCard.CardID); // Add dragon's card id
+                }
+
+                // Set "dead" status, only use in resoult display
+                GameInstance.Private.PlayersPrivate.forEach( player => {
+                        player.IsExploring = true;
+                });
+
+                // Reset players pocket, and bring public flag
+                GameInstance.Public.data.PlayersPublic.forEach( player => {
+                    if(newDecision.includes(player.uid)){
+                        player.status = PlayerStatus.DEAD;
+                        player.pocket = 0;
+                    }
+                });
+
+                GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_FIRST;
+
+            }else{
+                GameInstance.Secret.GameState = GAME_STATE.FINISHED;
+            }
+
+        }else{ 
+            GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_MOVE;
+        }
+
+    }else{ // If it's no trap or dragon, split emeralds 
+
+        let splitResoult = EmeraldsDistibutor.DivideAmongThePlayer(selectedCard.Emeralds,GameInstance.Secret.PlayersActive.length,GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake);
+        GameInstance.Public.data.PlayersPublic.forEach( player => {
+
+            if( newDecision.includes(player.uid) ){
+                player.pocket += splitResoult.byPlayer;
+            }
+
+        });
+
+        GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake += splitResoult.forFuture;
+       
+    }
+
+    GameInstance.Secret.PlayersActive = newDecision;
+    GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_MOVE;
+
+    return GameInstance;
 
 }
 
@@ -215,4 +239,3 @@ const CheckIfRoundIsFinnished = (deck:Deck, Cards: number[]):{resoult:boolean, c
 
     return {resoult,cardsToRemove};
 }
-

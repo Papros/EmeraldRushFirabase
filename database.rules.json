@@ -12,7 +12,7 @@
                 "Decision":{
                   ".validate":"newData.isNumber()",
                   ".read":false,
-                  ".write":"data.parent().child('Uid').val() == auth.uid"
+                  ".write":"data.parent().child('Uid').val() == auth.uid && now <= root.child('GAME_LIST').child($gameUid).child('game').child('Secret').child('DecisionDeadline').val()"
                 }
               }
             },

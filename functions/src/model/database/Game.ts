@@ -29,6 +29,8 @@ export class Game {
         PlayersActive: String[];
         GameState: number;
         RemovedCards: number[];
+        DecisionDeadline: number;
+        DecisionTolerance: number;
     }
 
     constructor (uid:string, players: PlayerInQueue[]){
@@ -52,7 +54,9 @@ export class Game {
         this.Secret = {
             PlayersActive: [],
             GameState: GAME_STATE.WAITING_FOR_FIRST,
+            DecisionDeadline: 0,
             RemovedCards: [],
+            DecisionTolerance: 3,
         }
 
         for(let n = 0; n < this.Public.data.MineNumber; n++){

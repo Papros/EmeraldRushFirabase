@@ -10,7 +10,7 @@ import * as EmeraldsDistibutor from './EmeraldsDistributor';
 
 export const ManageNextRound = (GameUID:String) => {
 
-    return new Promise<GAME_STATE>( (resolve,reject) => {
+    return new Promise( (resolve,reject) => {
 
         firebase.database().ref(`GAME_LIST/${GameUID}/game`).transaction( (GameInstance:Game) => {
 
@@ -50,30 +50,31 @@ const SelectNextCard = (GameInstance:Game):Game =>{
     let deck = new Deck();
     let cards = deck.Cards;
 
-    let newDecision:string[] = [];
+    let goingFurther:string[] = [];
 
     // Get Id of player who are going further
     GameInstance.Private.PlayersPrivate.forEach( player => {
         if( (player.Decision == PLAYER_DECISION.GO && GameInstance.Secret.PlayersActive.includes(player.Uid)) || GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_FIRST){
-            newDecision.push(player.Uid);
+            goingFurther.push(player.Uid);
         }
     });
 
-    // When no player decide to GO further , split non-split emeralds from prevoius round
-    if(newDecision.length == 0){
+    // When any player decide to GO further , split non-split emeralds from prevoius round
+    if(goingFurther.length == 0){
 
         let divideResoult = EmeraldsDistibutor.DivideAmongTheWinner(0, GameInstance.Secret.PlayersActive.length, GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake);
 
         GameInstance.Public.data.PlayersPublic.forEach( player => {
-            if( GameInstance.Secret.PlayersActive.includes(player.uid) ){
-                player.chest += player.pocket + divideResoult.byPlayer;
-                player.pocket = 0;
-            }
+            goingFurther.push(player.uid);
         });
 
         // Move emerald from pocket to the chest
         GameInstance.Public.data.PlayersPublic.forEach( player => {
-            newDecision.push(player.uid);
+            if( GameInstance.Secret.PlayersActive.includes(player.uid) ){
+                player.chest += player.pocket + divideResoult.byPlayer;
+                player.pocket = 0;
+                player.status = PlayerStatus.RESTING;
+            }
         });
 
         // Set pointer on next mine
@@ -93,19 +94,19 @@ const SelectNextCard = (GameInstance:Game):Game =>{
             player.IsExploring = true;
         })
 
-        GameInstance.Secret.PlayersActive = newDecision;
+        GameInstance.Secret.PlayersActive = goingFurther;
         return GameInstance;
 
     }else{ 
 
         //Filter which player are not going further
         let returningPlayerNumber = GameInstance.Private.PlayersPrivate.filter( player => {
-            return GameInstance.Secret.PlayersActive.includes(player.Uid) && !newDecision.includes(player.Uid);
+            return GameInstance.Secret.PlayersActive.includes(player.Uid) && !goingFurther.includes(player.Uid);
         }).length;
 
         // Moving emerlds from pocket to the chest, setting flag to false
         GameInstance.Public.data.PlayersPublic.forEach( player => {
-            if(!newDecision.includes(player.uid)){
+            if(!goingFurther.includes(player.uid)){
                 player.chest += player.pocket;
                 player.pocket = 0;
                 player.status = PlayerStatus.RESTING;
@@ -113,13 +114,16 @@ const SelectNextCard = (GameInstance:Game):Game =>{
                     player.chest += GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake;
                     GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake = 0;
                 }
+            }else if(GameInstance.Secret.PlayersActive.includes(player.uid)){
+                player.status = PlayerStatus.EXPLORING;
             }
         });
 
         // Setting public flag  IsExploring on false for this player
         GameInstance.Private.PlayersPrivate.forEach( player => {
-            if(!newDecision.includes(player.Uid)){
+            if(!goingFurther.includes(player.Uid)){
                 player.IsExploring = false;
+                player.Decision = PLAYER_DECISION.BACK;
             }
         });
 
@@ -172,11 +176,12 @@ const SelectNextCard = (GameInstance:Game):Game =>{
                 // Set "dead" status, only use in resoult display
                 GameInstance.Private.PlayersPrivate.forEach( player => {
                         player.IsExploring = true;
+                        player.Decision = PLAYER_DECISION.GO;
                 });
 
                 // Reset players pocket, and bring public flag
                 GameInstance.Public.data.PlayersPublic.forEach( player => {
-                    if(newDecision.includes(player.uid)){
+                    if(goingFurther.includes(player.uid)){
                         player.status = PlayerStatus.DEAD;
                         player.pocket = 0;
                     }
@@ -190,6 +195,7 @@ const SelectNextCard = (GameInstance:Game):Game =>{
 
         }else{ 
             GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_MOVE;
+            GameInstance.Secret.DecisionDeadline = Date.now()+(GameInstance.Public.data.DecisionTime+GameInstance.Secret.DecisionTolerance) * 1000;
         }
 
     }else{ // If it's no trap or dragon, split emeralds 
@@ -197,17 +203,23 @@ const SelectNextCard = (GameInstance:Game):Game =>{
         let splitResoult = EmeraldsDistibutor.DivideAmongThePlayer(selectedCard.Emeralds,GameInstance.Secret.PlayersActive.length,GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake);
         GameInstance.Public.data.PlayersPublic.forEach( player => {
 
-            if( newDecision.includes(player.uid) ){
+            if( goingFurther.includes(player.uid) ){
                 player.pocket += splitResoult.byPlayer;
             }
 
         });
 
+        GameInstance.Private.PlayersPrivate.forEach( player => {
+            if( goingFurther.includes(player.Uid) ){
+                player.Decision = PLAYER_DECISION.UNKNOWN;
+            }
+        })
+
         GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].EmeraldsForTake += splitResoult.forFuture;
        
     }
 
-    GameInstance.Secret.PlayersActive = newDecision;
+    GameInstance.Secret.PlayersActive = goingFurther;
     GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_MOVE;
 
     return GameInstance;

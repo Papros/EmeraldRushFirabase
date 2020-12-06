@@ -1,6 +1,5 @@
 import * as firebase from 'firebase-admin';
 import { Game, GAME_STATE } from "../../model/database/Game";
-import { PLAYER_DECISION } from '../../model/database/PlayerPrivate';
 
 export const ManagePlayerDecision = (GameUID:string) => {
 
@@ -13,13 +12,9 @@ export const ManagePlayerDecision = (GameUID:string) => {
             } 
             else{
 
-
                 if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_MOVE){
-                    let playersPrivate = GameInstance.Private.PlayersPrivate;
                     let deadline = Date.now() >= GameInstance.Secret.DecisionDeadline;
-                    let everyoneDecided = playersPrivate.filter( player => player.Decision != PLAYER_DECISION.UNKNOWN).length == 0;
-
-                    if(deadline || everyoneDecided){
+                    if(deadline){
                         GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_CARD;
                     }
                     

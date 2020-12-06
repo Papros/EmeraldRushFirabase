@@ -11,5 +11,5 @@ export const FinishGame = (GameUID:string) => {
 }
 
 export const CheckDecision = (GameUID: string) => {  
-    PlayerDecisionSecretary.ManagePlayerDecision(GameUID);
+    PlayerDecisionSecretary.WaitForPlayerDecision(GameUID);
 }

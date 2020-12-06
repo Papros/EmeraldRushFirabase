@@ -68,4 +68,8 @@ export class Deck {
        return this.Cards[CardID].CardType;
     }
 
+    GetDragonsId = ():number => {
+        return 15;
+    }
+
 }

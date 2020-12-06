@@ -15,12 +15,11 @@ export class Card{
         this.CardID = cardId;
     }
 
-    IsTrap = ():boolean => {
-        return (this.CardType == CARD_TYPE.DRAGON) || (this.CardType == CARD_TYPE.LAVA)   || 
-                (this.CardType == CARD_TYPE.ROCKS) || (this.CardType == CARD_TYPE.SNAKES) || 
-                (this.CardType == CARD_TYPE.TRAP)  || (this.CardType == CARD_TYPE.SPIDERS);
-    }
-
+    IsTrap = ():boolean => (this.CardType != CARD_TYPE.ARTIFACT && this.CardType != CARD_TYPE.DIAMONDS);
+    
     IsDragon = ():boolean => (this.CardType == CARD_TYPE.DRAGON);
+
+    IsEmeralds = ():boolean =>(this.CardType == CARD_TYPE.DIAMONDS || this.CardType == CARD_TYPE.ARTIFACT);
+    
 }
 

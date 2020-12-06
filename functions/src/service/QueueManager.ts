@@ -1,11 +1,10 @@
 import * as functions from 'firebase-functions';
 import { PlayerInQueue } from '../model/database/PlayerInQueue';
 import * as GameMaker from '../service/GameMaker';
-import * as DeckManager from './roundService/DeckManager';
 
 export const SearchInQueue = (mode:string, snapshot : functions.database.DataSnapshot):void => {
 
-    snapshot.ref.root.child('QUEUE').on("value", snapshot => {
+    snapshot.ref.root.child('QUEUE').on("value", dataSnapshot => {
 
         let gameList:PlayerInQueue[] = [];
         let limit:number = 0;
@@ -19,17 +18,14 @@ export const SearchInQueue = (mode:string, snapshot : functions.database.DataSna
 
         let enoughPlayer:boolean = false;
 
-        snapshot.forEach( player => {
+        dataSnapshot.forEach( player => {
            
             if(!enoughPlayer){
                 const p: PlayerInQueue = player.val();
                 if(p.GameMode === mode && p.UserUID != "Admin"){
                     gameList.push(p);
                     if(gameList.length === limit && !enoughPlayer){
-                        GameMaker.MakeGame(mode,gameList)
-                        .then((resoultGameUID) => {
-                            if(resoultGameUID != "") DeckManager.ManageNextRound(resoultGameUID);
-                        });
+                        GameMaker.MakeGame(mode,gameList);
                         enoughPlayer = true;
                     }
                 }

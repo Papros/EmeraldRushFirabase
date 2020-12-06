@@ -10,6 +10,6 @@ export const FinishGame = (GameUID:string) => {
     GameMaker.DeleteGame(GameUID);
 }
 
-export const CheckDecision = (GameUID: string, PlayerID: string) => {  
-    PlayerDecisionSecretary.RegisterNewDecision(GameUID,Number.parseInt(PlayerID));
+export const CheckDecision = (GameUID: string) => {  
+    PlayerDecisionSecretary.ManagePlayerDecision(GameUID);
 }

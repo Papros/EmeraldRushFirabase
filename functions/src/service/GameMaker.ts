@@ -17,9 +17,7 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
                 for(let iter=0; iter<playersList.length; iter++){
                     if(queue[playersList[iter].UserUID] != null && queue[playersList[iter].UserUID] != {}){
                         queue[playersList[iter].UserUID] = {};
-                        console.log("Player removed or empty object");
                     }else{
-                        console.log("No players available anymore, abort transaction");
                         return;
                     }
                 }
@@ -36,8 +34,7 @@ export const MakeGame = (mode:string, playersList:PlayerInQueue[]) => {
             if(resoult.committed){
                 const game:Game = new Game(uuid.v4(),playersList);
                 firebase.database().ref('GAME_LIST').child(game.Public.data.GameUID).child('game').update(game);
-        
-                console.log("Add new game: "+game.Public.data.GameUID);
+    
 
                 playersList.forEach( player => {
                     firebase.database().ref("USER_LIST").child(player.UserUID).child('user').child("GameUID").set(game.Public.data.GameUID);

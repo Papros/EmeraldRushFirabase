@@ -9,6 +9,7 @@ export const GameStateUpdateListener = functions.database.ref("/GAME_LIST/{gameU
     switch(currentState){
         case Game.GAME_STATE.WAITING_FOR_CARD: RoundManager.PlayNextCard(context.params.gameUID); break;
         case Game.GAME_STATE.WAITING_FOR_MOVE: RoundManager.CheckDecision(context.params.gameUID); break;
+        case Game.GAME_STATE.ROUND_SUMMARY: RoundManager.CheckDecision(context.params.gameUID); break;
         case Game.GAME_STATE.WAITING_FOR_FIRST:  RoundManager.PlayNextCard(context.params.gameUID); break;
         case Game.GAME_STATE.FINISHED: RoundManager.FinishGame(context.params.gameUID); break;
     }
@@ -22,6 +23,7 @@ export const GameStateUpdateListener = functions.database.ref("/GAME_LIST/{gameU
     switch(currentState){
         case Game.GAME_STATE.WAITING_FOR_CARD: RoundManager.PlayNextCard(context.params.gameUID); break;
         case Game.GAME_STATE.WAITING_FOR_MOVE: RoundManager.CheckDecision(context.params.gameUID); break;
+        case Game.GAME_STATE.ROUND_SUMMARY: RoundManager.CheckDecision(context.params.gameUID); break;
         case Game.GAME_STATE.WAITING_FOR_FIRST:  RoundManager.PlayNextCard(context.params.gameUID); break;
         case Game.GAME_STATE.FINISHED: RoundManager.FinishGame(context.params.gameUID); break;
     }

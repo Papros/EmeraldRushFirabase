@@ -4,7 +4,7 @@ import { PlayerPrivate } from "./PlayerPrivate";
 import { PlayerPublic } from "./PlayerPublic";
 
 export enum GAME_STATE {
-    WAITING_FOR_MOVE, WAITING_FOR_CARD, FINISHED, WAITING_FOR_FIRST
+    WAITING_FOR_MOVE, WAITING_FOR_CARD, FINISHED, WAITING_FOR_FIRST, ROUND_SUMMARY
 }
 
 export class Game {
@@ -60,8 +60,8 @@ export class Game {
         };
 
         this.Secret = {
-            GameState: GAME_STATE.WAITING_FOR_FIRST,
-            DecisionDeadline: Date.now()+this.Public.data.RoundCooldownTime,
+            GameState: GAME_STATE.ROUND_SUMMARY,
+            DecisionDeadline: Date.now()+(this.Public.data.RoundCooldownTime)*1000,
             RemovedCards: [],
             DecisionTolerance: 3,
         }

@@ -12,10 +12,16 @@ export const ManagePlayerDecision = (GameUID:string) => {
             } 
             else{
 
-                if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_MOVE){
+                if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_MOVE || GameInstance.Secret.GameState == GAME_STATE.ROUND_SUMMARY){
+                    
                     let deadline = Date.now() >= GameInstance.Secret.DecisionDeadline;
                     if(deadline){
-                        GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_CARD;
+                        if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_MOVE){
+                            GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_CARD;
+                        }
+                        else if(GameInstance.Secret.GameState == GAME_STATE.ROUND_SUMMARY){
+                            GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_FIRST;
+                        }   
                     }
                     
                     return GameInstance;

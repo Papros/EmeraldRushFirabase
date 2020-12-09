@@ -8,11 +8,13 @@
               ".read":"root.child('USER_LIST').child(auth.uid).child('user').child('GameUID').val() == $gameUid"
             },
             "Private":{
-              "$nr":{
-                "Decision":{
-                  ".validate":"newData.isNumber()",
-                  ".read":false,
-                  ".write":"data.parent().child('Uid').val() == auth.uid && now <= root.child('GAME_LIST').child($gameUid).child('game').child('Secret').child('DecisionDeadline').val()"
+              "PlayersPrivate":{
+                "$nr":{
+                  "Decision":{
+                    ".validate":"newData.isNumber()",
+                    ".read":false,
+                    ".write":"data.parent().child('Uid').val() == auth.uid && now <= root.child('GAME_LIST').child($gameUid).child('game').child('Secret').child('DecisionDeadline').val()"
+                  }
                 }
               }
             },

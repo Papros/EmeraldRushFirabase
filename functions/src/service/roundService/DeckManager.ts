@@ -20,7 +20,11 @@ export const ManageNextRound = (GameUID:string) => {
             else{
 
                 if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_FIRST){
+                                    
+                    //let timeToWait = GameInstance.Secret.DecisionDeadline - Date.now();
+
                     return PlayFirstCard(GameInstance);
+                        
                 }
                 else {
                     if(GameInstance.Secret.GameState == GAME_STATE.WAITING_FOR_CARD){
@@ -97,8 +101,8 @@ const PlayNextCard = (GameInstance:Game):Game => {
             GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
             GameInstance.Public.data.CurrentMineID++;
             GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.NOT_VISITED;
-            GameInstance.Public.data.PublicState = GAME_STATE.WAITING_FOR_FIRST;
-            GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_FIRST;
+            GameInstance.Public.data.PublicState = GAME_STATE.ROUND_SUMMARY
+            GameInstance.Secret.GameState = GAME_STATE.ROUND_SUMMARY;
         }else{
             GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
             GameInstance.Public.data.PublicState = GAME_STATE.FINISHED;
@@ -156,7 +160,7 @@ const PlayNextCard = (GameInstance:Game):Game => {
     
             GameInstance.Public.data.PlayersPublic.forEach( player => {
                 if(goingPlayer.includes(player.uid)){
-                    player.pocket = redistributeResoult.byPlayer;
+                    player.pocket += redistributeResoult.byPlayer;
                 }
             });
 
@@ -198,6 +202,7 @@ const PlayNextCard = (GameInstance:Game):Game => {
                 GameInstance.Public.data.PlayersPublic.forEach( player => {
                     if(goingPlayer.includes(player.uid)){
                         player.status = PlayerStatus.DEAD;
+                        player.pocket = 0;
                     }
 
                 });
@@ -206,8 +211,8 @@ const PlayNextCard = (GameInstance:Game):Game => {
                     GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
                     GameInstance.Public.data.CurrentMineID++;
                     GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.NOT_VISITED;
-                    GameInstance.Public.data.PublicState = GAME_STATE.WAITING_FOR_FIRST;
-                    GameInstance.Secret.GameState = GAME_STATE.WAITING_FOR_FIRST;
+                    GameInstance.Public.data.PublicState = GAME_STATE.ROUND_SUMMARY;
+                    GameInstance.Secret.GameState = GAME_STATE.ROUND_SUMMARY;
                 }else{
                     GameInstance.Public.data.Mines[GameInstance.Public.data.CurrentMineID].MineState = MINE_STATE.VISITED;
                     GameInstance.Public.data.PublicState = GAME_STATE.FINISHED;
@@ -245,6 +250,7 @@ const PlayFirstCard = (GameInstance:Game):Game => {
      //============================================
     //==            GAME START                  ==
     //============================================
+
 
     if(GameInstance.Secret.RemovedCards == undefined){
         GameInstance.Secret.RemovedCards = [];
